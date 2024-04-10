@@ -1,22 +1,29 @@
-import {jwtDecode}  from "jwt-decode";
+import {jwtDecode} from "jwt-decode";
 import { useEffect, useState } from "react";
 import { Button, Col, Image, Nav, Row, } from "react-bootstrap";
-//import { useDispatch, useSelector } from "react-redux";
 import BlogPostCard from "./BlogPostCard";
-//import AddBlogPost from "./AddBlogPost";
-//import { fetchPostsByUser } from "../features/posts/postsSlice";
+import { useCookies } from "react-cookie";
 
-export default function BlogPosts({handleLogout}) {
+export default function BlogPosts() {
   const [posts, setPosts] = useState([]);
+  const [cookies] = useCookies(['jwt']);
+  var token = '';
  
   const url = "https://foodseekerdude.com/images/gallery/australia/perth/perth-08.jpg";
   const pic = "https://foodseekerdude.com/images/logo.jpg";
+   
+  token = cookies.jwt;
 
-  //const dispatch = useDispatch();
-  //const posts = useSelector((state) => state.posts.posts);
-  //const loading = useSelector((state) => state.posts.loading); 
+  useEffect(() => {
+       
+    if (token) {
+      const decodedToken = jwtDecode(token);
+      const userId = decodedToken.id;
+      fetchPosts(userId);
+    }
+  }, [token]);
 
-  //Fetch posts based on post id
+  //Fetch all posts  
   const fetchPosts = () => {
     fetch(`https://075588d3-6a91-4958-b560-4bf287cfade2-00-3aqtr78zcqhsa.picard.replit.dev/posts`)
     .then((response) => response.json())
@@ -24,19 +31,10 @@ export default function BlogPosts({handleLogout}) {
     .catch((error) => console.error("Error:", error));
   }
 
-  useEffect(() => {
-    const token = localStorage.getItem("authToken");
-    if (token) {
-      const decodedToken = jwtDecode(token);
-      const userId = decodedToken.id;
-      fetchPosts(userId);
-    }
-  }, []);
-
-
+  // Display Top menu (Home, Add Post and Log out), Home page, hero picture, and All blog posts by routing to BlogPostCard
   return (
-    <Col sm={6} className="bg-light" style={{ border: "1px solid lightgrey" }}>
-      <Nav variant="underline" defaultActiveKey="/home" justify>
+    <Col sm={12} className="bg-light" style={{ border: "1px solid lightgrey" }}>
+      <Nav variant="pills" defaultActiveKey="/home" justify>
         <Nav.Item>
           <Nav.Link href="/home">Home</Nav.Link>
         </Nav.Item>
@@ -53,7 +51,7 @@ export default function BlogPosts({handleLogout}) {
           <Nav.Link eventKey="link-4"></Nav.Link>
         </Nav.Item>
       </Nav>
-      <Image src={url} fluid />
+      <Image src={url} style={{ width: "100%", height: "600px" }}fluid />
       <br />
       <Image 
         src={pic}
@@ -69,35 +67,29 @@ export default function BlogPosts({handleLogout}) {
 
       <Row className="justify-content-end">
         <Col xs="auto">
-          <Button className="rounded-pill mt-2" variant="outline-secondary" onClick={handleLogout}>
+          <Button className="rounded-pill mt-2" variant="outline-secondary"  href="/logout">
             Logout
           </Button>
         </Col>
       </Row>
 
-      <p className="mt-5" style={{ margin: 0, fontWeight: "bold", fontSize: "15px" }}>
-        Haris
+      <p className="mt-1" style={{ margin: 0, textAlign: "center", fontWeight: "bold", fontSize: "24px" }}>
+        Kok Onn Chong Blog Posts
       </p>
-
-      <p style={{ marginBottom: "2px"}}>@haris.samingan</p>
-
-      <p>I help people switch careers to be a software developer at sigmaschool.co</p>
-
-      <p>Entrepreneur</p>
-
+      <p style={{ marginBottom: "2px"}}></p>
+      <p>This is my Blog Posts. I post about virtually anything. It can be topics like A day in the Life of a Software Engineer to Animal Kingdom, King Kong vs. Godzilla.</p>
       <p>
         <strong>271</strong> Following <strong>610</strong> Followers
       </p>
 
-      
-      
-      {posts.length > 0 && posts.map((post) => (
+      {posts.length > 0 && posts.map((post) => (       
         <BlogPostCard 
           key={post.id} 
           title={post.title}
           author={post.author}
           content={post.content} 
           postId={post.id}
+          cookies={cookies}
          />
       ))}
     </Col>

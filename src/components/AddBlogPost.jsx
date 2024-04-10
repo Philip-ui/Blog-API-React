@@ -1,42 +1,30 @@
 import axios from "axios";
 import { useState } from "react";
 import { Button, Form, Container, Col, Row } from "react-bootstrap";
-//import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
-//import useLocalStorage from "use-local-storage";
+import { useCookies  } from "react-cookie";
 
 export default function AddBlogPost() {
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
   const [content, setContent] = useState("");
-  //const [authToken, setAuthToken] = useLocalStorage("authToken", "");
-  const navigate = useNavigate(); 
+  const [cookies, setCookie] = useCookies(['jwt']);
 
+  var token = '';
+  const navigate = useNavigate();
+
+  // Saving blog post to back end database
   const handleSave = async (e) => {
-    e.preventDefault();
-    //Get stored JWT Token
-    const token = localStorage.getItem("authToken");
-    //Decode the token to fetch user id
-    //const decode = jwtDecode(token);
-    //const userId = decode.id // May change depending on how the server encode the token
-    console.log(token);
+    e.preventDefault();    
+    token = cookies.jwt;
+       
     if (!token) {
       console.error('User is not authenticated');
+      setCookie('jwt', null);
       return;
     }
 
-    //Decode the token to fetch user id
-    //const decode = jwtDecode(token);
-    //const userId = decode.id // May change depending on how the server encode the token
-
-    //Prepare data to be sent
-    //const data = {
-     // title: "Post Title",  //Add functionality to set this properly
-     // content: postContent,
-     // user_id: userId, 
-    //};
-
-    //Make your API call here
+    //Make your API call here and inserting new post
     try {
       const response = await axios.post('https://075588d3-6a91-4958-b560-4bf287cfade2-00-3aqtr78zcqhsa.picard.replit.dev/posts', {
         title: title,
@@ -44,12 +32,14 @@ export default function AddBlogPost() {
         content: content,        
       }, {
         headers: {
+          "Content-Type": "application/json",
           Authorization: token // Set the JWT token in the request headers
         }
       });
-
+      console.log("token", token);
       console.log('New blog post created:', response.data);
-      // Clear the form after successful submission
+      
+      // Clear the form after successful submission and route to home page
       setTitle("");
       setAuthor("");
       setContent("");
@@ -59,7 +49,7 @@ export default function AddBlogPost() {
     }
   };
   
-
+  // Adding blog post form
   return (
     <>
     <Container>
