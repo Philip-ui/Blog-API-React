@@ -1,19 +1,19 @@
 import { Button, Container, Row, Col, Card } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import useLocalStorage from "use-local-storage";
-import { useEffect } from "react";
+import { useCookies } from "react-cookie";
+
 
 export default function Logout() {
   const navigate = useNavigate();
-  const [authToken, setAuthToken] = useLocalStorage("authToken", "");
-  
-      
-  useEffect(() => {
-    if (!authToken) navigate("/login");
-  }, [authToken, navigate]);  
-  const handleLoginClick = () => setAuthToken("");
-    
+  const [cookies, setCookie] = useCookies(['jwt']);
 
+  const handleLoginClick = () => {
+    if (cookies.jwt) {
+      // set the JWT cookie to null
+      setCookie('jwt', null);
+    }   
+    navigate("/login");
+  }
   return (
     <Container>
         <h1 className="my-3">Logged Out</h1>

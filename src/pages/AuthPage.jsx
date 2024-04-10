@@ -1,35 +1,32 @@
 import { Button, Col, Row, Form, Container } from "react-bootstrap";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import useLocalStorage from "use-local-storage";
 import { useNavigate } from "react-router-dom";
+import { useCookies } from "react-cookie";
 
 export default function AuthPage() { 
   const url =
     "https://075588d3-6a91-4958-b560-4bf287cfade2-00-3aqtr78zcqhsa.picard.replit.dev";
 
-  // Possible values: null (no modal shows), "Login", "SignUp"
+  
+  const [cookies, setCookie] = useCookies(['jwt']);
   const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [authToken, setAuthToken] = useLocalStorage("authToken", "");
+  const [password, setPassword] = useState("");  
   const [usernameError, setUsernameError] = useState(""); 
   const [passwordError, setPasswordError] = useState(""); 
   const navigate = useNavigate();
- 
-  //setAuthToken(""); 
-
   
-
-  
-
+  // Login in authenticating username and password from back-end database
   const handleLogin = async (e) => {
     e.preventDefault();  
     try {
       const res = await axios.post(`${url}/auth/login`, { username, password });
       if (res.data && res.data.auth === true && res.data.token) {
-        setAuthToken(res.data.token); // Save token to localStorage.
+        const token = res.data.token;
+        // Set the JWT token as a cookie
+        setCookie('jwt', token, { path: '/' });        
         console.log("Login was successful, token saved");
-        console.log(authToken);
+        navigate("/home");
       }
     } catch (error) { 
       if (error.response) {
@@ -37,34 +34,33 @@ export default function AuthPage() {
       // No such username
       setUsernameError("No such username.");
       setPasswordError("");
-      setAuthToken("");
+      
     } else if (error.response && error.response.status === 401) {
       // Wrong password
       setUsernameError("");
       setPasswordError("Incorrect password.");
-      setAuthToken("");
+      
     } else {
       console.error(error);
         setUsernameError("An unexpected error occurred.");
         setPasswordError("");
-        setAuthToken("");
+        
     }
    } else {
     console.error(error);
     setUsernameError("An unexpected error occurred.");
     setPasswordError("");
-    setAuthToken("");
+    
   }
  }
 };
 
-//const token = localStorage.getItem("authToken");
-
 useEffect(() => {
-  if (authToken) {
+  const token = cookies.jwt;
+  if (token) {
     navigate("/home");
   }
-}, [authToken, navigate]);
+}, [navigate, cookies]);
 
   return (
     <Container >
